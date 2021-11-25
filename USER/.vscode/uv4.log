@@ -1,0 +1,14 @@
+*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'DoorControlSystem'
+compiling text.c...
+compiling fontupd.c...
+..\TEXT\fontupd.c(120): warning:  #940-D: missing return statement at end of non-void function "updata_fontx" 
+  } 
+..\TEXT\fontupd.c(207): warning:  #940-D: missing return statement at end of non-void function "update_font" 
+  } 
+..\TEXT\fontupd.c: 2 warnings, 0 errors
+linking...
+Program Size: Code=36834 RO-data=6594 RW-data=68 ZI-data=5948  
+FromELF: creating hex file...
+"..\OBJ\HZ.axf" - 0 Error(s), 2 Warning(s).
+Build Time Elapsed:  00:00:01

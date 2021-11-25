@@ -1,0 +1,15 @@
+{
+  "files.encoding": "gb2312",
+  "files.associations": {
+    "main.h": "c",
+    "key.h": "c",
+    "led.h": "c",
+    "delay.h": "c",
+    "beep.h": "c",
+    "timer.h": "c",
+    "sys.h": "c",
+    "exti.h": "c",
+    "string.h": "c"
+  },
+  "C_Cpp.errorSquiggles": "Disabled"
+}
