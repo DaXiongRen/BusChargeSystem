@@ -17,10 +17,14 @@
 
 u16 W25QXX_TYPE = W25Q128; //默认是W25Q128
 
-//4Kbytes为一个Sector
-//16个扇区为1个Block
-//W25Q128
-//容量为16M字节,共有128个Block,4096个Sector
+//W25Q128将16MByte的内存分为256个块(Block)，每个块是64K
+//又将一个块分为16个扇区(Sector)，一个扇区是4K
+//又将一个扇区分为16个页，一个页是256字节(Byte)地址
+//容量为16M字节,共有256个块,4096个扇区,65536个页
+//16MByte = 256 * 64 * 1024 Byte
+//        = 256 * 16 * 4 * 1024 Byte
+//        = 256 * 16 * 16 * 256 Byte
+//        = 16 * 1024 * 1024 Byte
 
 //初始化SPI FLASH的IO口
 void W25QXX_Init(void)
@@ -250,7 +254,7 @@ void W25QXX_Erase_Chip(void)
 }
 //擦除一个扇区
 //Dst_Addr:扇区地址 根据实际容量设置
-//擦除一个山区的最少时间:150ms
+//擦除一个扇区的最少时间:150ms
 void W25QXX_Erase_Sector(u32 Dst_Addr)
 {
 	//监视falsh擦除情况,测试用

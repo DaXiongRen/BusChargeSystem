@@ -38,7 +38,7 @@ void LED_Init(void)
 void OK_LED(void)
 {
   LED1 = 0;
-  delay_ms(5000);
+  delay_ms(2000);
   LED1 = 1;
 }
 
@@ -48,6 +48,6 @@ void OK_LED(void)
 void ERR_LED(void)
 {
   LED0 = 0;
-  delay_ms(5000);
+  delay_ms(2000);
   LED0 = 1;
 }

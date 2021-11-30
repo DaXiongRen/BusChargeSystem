@@ -9,7 +9,17 @@
     "timer.h": "c",
     "sys.h": "c",
     "exti.h": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "spi.h": "c",
+    "rc522.h": "c",
+    "usart.h": "c",
+    "lcd.h": "c",
+    "stdlib.h": "c",
+    "w25qxx.h": "c",
+    "array": "c",
+    "string_view": "c",
+    "initializer_list": "c",
+    "utility": "c"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }
