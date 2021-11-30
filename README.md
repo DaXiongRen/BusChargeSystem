@@ -1,3 +1,12 @@
+# BusChargeSystem
+
+#### 介绍
+
+基于STM32F4+RFID的公交车收费系统
+只实现了一些简单的增删改查功能
+
+
+
 # 更新日志
 
 
@@ -71,4 +80,5 @@
 传真：020-36773971
 购买： http://shop62057469.taobao.com
 公司网站：www.alientek.com
+
 技术论坛：www.openedv.com
