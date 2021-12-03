@@ -20,7 +20,8 @@ typedef enum
 } Boolean;
 
 /* 主程序变量定义 */
-extern u8 cardID[ID_LEN + 1];     // 存放ID卡号
+extern u8 adminID[ID_LEN];        // 管理员ID卡号
+extern u8 cardID[ID_LEN + 1];     // 存放普通用户ID卡号
 extern u8 userName[NAME_LEN + 1]; // 用户名
 extern u8 balance;                // 账户余额
 /* keyFun取值 -> KEY_NULL:无操作 KEY0_VALUE:运行读卡信息 KEY1_VALUE:添加用户卡 KEY2_VALUE:删除用户卡 */
@@ -42,6 +43,8 @@ Boolean IsNullID(u8 *cardID, u8 size);        // 判断ID是否为空
 Boolean IsNullData(u8 *data, u8 size);        // 判断数据是否为空
 void ReadCardTips(void);                      // 读卡提示信息
 char ReadCard(void);                          // 读卡
+void ManageUserMenu(void);                    // 管理用户菜单
+void ManageUser(void);                        // 管理用户
 void AddUserMenu(void);                       // 显示添加用户菜单
 void DelUserMenu(void);                       // 显示删除用户菜单
 void UserSignup(void);                        // 用户注册
