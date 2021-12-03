@@ -29,10 +29,11 @@
 	PA4  -- NSS
 	PA6  -- RST
 */
-u8 cardID[ID_LEN + 1];	   // 存放ID卡号 +1是为了存放'\0'
-u8 userName[NAME_LEN + 1]; // 用户名 +1是为了存放'\0'
-u8 balance;				   // 账户余额
-u8 keyFun;				   // 先初始化没有任何按键按下的状态
+u8 adminID[ID_LEN] = {0x3A, 0x60, 0xAE, 0x80}; // 管理员卡号 用于删除用户的权限控制
+u8 cardID[ID_LEN + 1];						   // 存放普通用户ID卡号 +1是为了存放'\0'
+u8 userName[NAME_LEN + 1];					   // 用户名 +1是为了存放'\0'
+u8 balance;									   // 账户余额
+u8 keyFun;									   // 先初始化没有任何按键按下的状态
 /**
  * 在Flash中存储数据的格式：
  * 【顺序存储】
@@ -42,9 +43,9 @@ u8 keyFun;				   // 先初始化没有任何按键按下的状态
  * 共占8字节
  */
 /* 定义FLASH有关变量 当START_ADDR = MAX_ADDR时 则为存储容量已满 */
-const u32 MAX_ADDR = 0x00FFFF; // 取W25Q128中的一个块内存 MAX_ADDR = 65535; W25Q128总内存是16M = 16 * 1024 * 1024 Byte
-const u32 START_ADDR = 15;	   // 定义W25Q128一个块内存的起始地址
-const u8 DATA_SIZE = ID_LEN + NAME_LEN + BALANCE_LEN;
+const u32 MAX_ADDR = 0x00FFFF;						  // 取W25Q128中的一个块内存 MAX_ADDR = 65535; W25Q128总内存是16M = 16 * 1024 * 1024 Byte
+const u32 START_ADDR = 7;							  // 定义W25Q128一个块内存的起始地址
+const u8 DATA_SIZE = ID_LEN + NAME_LEN + BALANCE_LEN; // 数据大小
 /* Flash[START_ADDR,MAX_ADDR] */
 
 int main(void)
@@ -56,7 +57,7 @@ int main(void)
 	KEY_Init();										//初始化按键
 	EXTIX_Init();									// 初始化外部中断 用于读取按键值
 	W25QXX_Init();									//初始化W25Q128
-	uart_init(115200);								//串口初始化波特率为115200
+	uart_init(115200);								//串口1初始化波特率为115200
 	LCD_Init();										// LCD初始化
 	RC522_SPI3_Init();
 	MFRC522_Initializtion();
@@ -95,12 +96,13 @@ void SysRunning(void)
 			break;
 		case KEY1_VALUE:
 			LCD_Clear(BLUE);
-			UserSignup();	   // 用户注册
+			ManageUser();	   // 管理用户
 			keyFun = KEY_NULL; // 置为KEY_NULL -> 防止下次循环继续调用此功能
 			break;
 		case KEY2_VALUE:
 			LCD_Clear(BLUE);
-			DeleteUser();
+			// DeleteUser();
+			BalanceRecharge(); // 余额充值
 			keyFun = KEY_NULL;
 			break;
 		}
@@ -115,17 +117,17 @@ void LcdDesktop(void)
 	// 系统信息
 	LCD_DrawRectangle(20, 20, 220, 116); // 绘制一个外矩形框
 	LCD_DrawRectangle(22, 22, 218, 114); // 绘制一个内矩形框
-	LCD_ShowString(30, 30, 200, 16, 16, "BusChargeSystem(BCS)");
-	LCD_ShowString(30, 50, 200, 16, 16, "   @Version: 2.0      ");
+	LCD_ShowString(30, 30, 200, 16, 16, "BusChargeSystem(BCS)  ");
+	LCD_ShowString(30, 50, 200, 16, 16, "   @Version: 2.2      ");
 	LCD_ShowString(30, 70, 200, 16, 16, "   @Author: DXR       ");
-	LCD_ShowString(30, 90, 200, 16, 16, "   @Date: 2021/11/230 ");
+	LCD_ShowString(30, 90, 200, 16, 16, "   @Date: 2021/12/2   ");
 	// 桌面信息
 	LCD_ShowString(20, 130, 200, 16, 16, "=========================");
 	LCD_ShowString(20, 150, 200, 16, 16, "*       <Desktop>       *");
 	LCD_ShowString(20, 170, 200, 16, 16, "=========================");
 	LCD_ShowString(20, 190, 200, 16, 16, "*    KEY0 <Running>     *");
-	LCD_ShowString(20, 210, 200, 16, 16, "*    KEY1 <Add User>    *");
-	LCD_ShowString(20, 230, 200, 16, 16, "*    KEY2 <Delete User> *");
+	LCD_ShowString(20, 210, 200, 16, 16, "*    KEY1 <Manage User> *");
+	LCD_ShowString(20, 230, 200, 16, 16, "*    KEY2 <Recharge>    *");
 	LCD_ShowString(20, 250, 200, 16, 16, "=========================");
 }
 
@@ -145,6 +147,7 @@ void BCSRunning(void)
 	u8 tempCardID[ID_LEN] = {0x0};
 	u32 index; // 用于保存用户卡ID在数据存储区中的地址索引
 	u8 consume = 0;
+	LCD_Clear(BLUE);
 	while (1)
 	{
 		ConsumeTips();
@@ -240,6 +243,88 @@ void SetBalance(u8 balance)
 }
 
 /**
+ * @brief 显示充值菜单
+ */
+void RechargeMenu(void)
+{
+	LCD_ShowString(20, 130, 200, 16, 16, "=========================");
+	LCD_ShowString(20, 150, 200, 16, 16, "*       <Recharge>      *");
+	LCD_ShowString(20, 170, 200, 16, 16, "=========================");
+	LCD_ShowString(20, 190, 200, 16, 16, "*      KEY1: 100 RMB    *");
+	LCD_ShowString(20, 210, 200, 16, 16, "*      KEY2: 200 RMB    *");
+	LCD_ShowString(20, 230, 200, 16, 16, "*      KEYUP: Exit      *");
+	LCD_ShowString(20, 250, 200, 16, 16, "=========================");
+}
+
+/**
+ * @brief 余额充值
+ */
+void BalanceRecharge(void)
+{
+	u32 index;
+	u8 status;
+	keyFun = KEY_NULL; // 先初始化没有任何按键按下的状态
+	LCD_Clear(BLUE);
+	while (1)
+	{
+		RechargeMenu(); // 显示充值菜单
+		/* KEY_UP 按下 则退出 */
+		if (KEYUP_VALUE == keyFun)
+		{
+			LCD_Clear(BLUE);
+			return;
+		}
+
+		if (keyFun == KEY1_VALUE || keyFun == KEY2_VALUE)
+		{
+			LCD_Clear(BLUE);
+			ReadCardTips();		 // 提示读卡信息
+			status = ReadCard(); // 读卡
+			if (status == MI_OK)
+			{
+				if (SearchID(cardID, &index) == TRUE)
+				{
+					balance = GetBalance();			  // 先获取用户的当前余额
+					if (keyFun * 100 + balance > 200) // 验证是否超出限额
+					{
+						LCD_Clear(BLUE);
+						LCD_ShowString(30, 110, 220, 16, 16, "Balance Exceeded!");
+						ERR_BEEP();
+						delay_ms(1000);
+						LCD_Clear(BLUE);
+						keyFun = KEY_NULL;
+						continue;
+					}
+					SetBalance(keyFun * 100 + balance);
+					LCD_Clear(BLUE);
+					balance = GetBalance();
+					OK_BEEP();
+					LCD_ShowString(30, 110, 220, 16, 16, "OK:Recharge succeed!");
+					LCD_ShowNum(75, 180, balance, 3, 24);
+					LCD_ShowString(115, 180, 200, 16, 24, "RMB");
+					delay_ms(3000);
+					LCD_Clear(BLUE);
+					keyFun = KEY_NULL;
+				}
+				else
+				{
+					LCD_Clear(BLUE);
+					LCD_ShowString(30, 110, 220, 16, 16, "Error:Not fuond user! ");
+					ERR_BEEP();
+					delay_ms(1000);
+					LCD_Clear(BLUE);
+					keyFun = KEY_NULL;
+				}
+			}
+			else
+			{
+				keyFun = KEY_NULL; // 退出
+			}
+		}
+	}
+}
+
+/**
  * @brief 在数据存储区搜索用户卡的ID
  * @param cardID[u8*](IN) 用户卡ID
  * @param index[u32*](OUT) 指向数据存储区地址的索引
@@ -300,8 +385,11 @@ Boolean IsEquals(u8 *arr1, u8 *arr2, u8 len)
 Boolean IsNullID(u8 *cardID, u8 size)
 {
 	u8 *nullID = (u8 *)malloc(size);
+	Boolean check = FALSE;
 	memset(nullID, 0xFF, size);
-	return IsEquals(cardID, nullID, size) == TRUE ? TRUE : FALSE;
+	check = IsEquals(cardID, nullID, size);
+	free(nullID); // 释放内存
+	return check;
 }
 
 /**
@@ -313,8 +401,11 @@ Boolean IsNullID(u8 *cardID, u8 size)
 Boolean IsNullData(u8 *data, u8 size)
 {
 	u8 *nullData = (u8 *)malloc(size);
+	Boolean check = FALSE;
 	memset(nullData, 0xFF, size);
-	return IsEquals(data, nullData, size) == TRUE ? TRUE : FALSE;
+	check = IsEquals(data, nullData, size);
+	free(nullData); // 释放内存
+	return check;
 }
 
 /**
@@ -322,7 +413,7 @@ Boolean IsNullData(u8 *data, u8 size)
  */
 void ReadCardTips(void)
 {
-	LCD_Clear(BLUE);
+	// LCD_Clear(BLUE);
 	LCD_ShowString(20, 130, 200, 16, 16, "=========================");
 	LCD_ShowString(20, 150, 200, 16, 16, "*    ====(((())))====   *");
 	LCD_ShowString(20, 170, 200, 16, 16, "*        Reading...     *");
@@ -357,6 +448,79 @@ char ReadCard(void)
 	}
 	// LCD_Clear(BLUE);
 	return MI_OK;
+}
+
+/**
+ * @brief 管理用户菜单
+ */
+void ManageUserMenu(void)
+{
+	LCD_ShowString(20, 130, 200, 16, 16, "=========================");
+	LCD_ShowString(20, 150, 200, 16, 16, "*      <Manage User>    *");
+	LCD_ShowString(20, 170, 200, 16, 16, "=========================");
+	LCD_ShowString(20, 190, 200, 16, 16, "*    KEY0: Add User     *");
+	LCD_ShowString(20, 210, 200, 16, 16, "*    KEY1: Delete User  *");
+	LCD_ShowString(20, 230, 200, 16, 16, "*    KEYUP: Exit        *");
+	LCD_ShowString(20, 250, 200, 16, 16, "=========================");
+}
+
+/**
+ * @brief 管理用户
+ */
+void ManageUser(void)
+{
+	u8 status;
+
+	keyFun = KEY_NULL;
+
+	while (1)
+	{
+		ManageUserMenu();
+		/* KEY_UP 按下 则退出 */
+		if (KEYUP_VALUE == keyFun)
+		{
+			// PcdHalt();
+			LCD_Clear(BLUE);
+			return;
+		}
+		/* 添加用户 -> 用户注册 */
+		if (keyFun == KEY0_VALUE)
+		{
+			UserSignup();
+			keyFun = KEY_NULL;
+		}
+		/* 删除用户 */
+		if (keyFun == KEY1_VALUE)
+		{
+			LCD_Clear(BLUE);
+			LCD_ShowString(20, 110, 200, 16, 16, "*      <Admin Login>    *");
+			ReadCardTips();
+			status = ReadCard(); // 读卡
+			if (status == MI_OK)
+			{
+				/* 验证管理员 */
+				if (IsEquals(cardID, adminID, ID_LEN) == TRUE)
+				{
+					OK_BEEP();
+					DeleteUser();
+					keyFun = KEY_NULL;
+				}
+				else
+				{
+					LCD_Clear(BLUE);
+					LCD_ShowString(30, 110, 220, 16, 16, "Error:Non-Administrator!");
+					ERR_BEEP();
+					delay_ms(1000);
+					LCD_Clear(BLUE);
+					keyFun = KEY_NULL;
+				}
+			}
+			else
+			{
+				keyFun = KEY_NULL;
+			}
+		}
+	}
 }
 
 /**
@@ -398,6 +562,7 @@ void UserSignup(void)
 		/* 存在按键按下 且 按下的按键不是KEYUP */
 		if ((KEY_NULL != keyFun) && (keyFun != KEYUP_VALUE))
 		{
+			LCD_Clear(BLUE);
 			ReadCardTips();
 			status = ReadCard(); // 读卡
 			if (status == MI_OK)
@@ -434,7 +599,7 @@ void AddUser(u8 *cardID)
 		LCD_ShowString(120, 165, 200, 16, 24, "RMB");
 
 		OK_BEEP();
-		delay_ms(1000);
+		delay_ms(3000);
 		LCD_Clear(BLUE);
 	}
 	else /* 添加失败 */
@@ -508,7 +673,7 @@ void DeleteUser(void)
 {
 	char status;
 	keyFun = KEY_NULL;
-
+	LCD_Clear(BLUE);
 	while (1)
 	{
 		DelUserMenu();
@@ -521,6 +686,7 @@ void DeleteUser(void)
 		/* 按KEY1删除指定用户卡ID 需刷指定的卡进行删除操作 */
 		while (keyFun == KEY1_VALUE)
 		{
+			LCD_Clear(BLUE);
 			ReadCardTips();
 			status = ReadCard(); // 刷卡
 			if (status == MI_OK)
@@ -575,7 +741,29 @@ void RemoveAllUser()
 }
 
 /**
- * @brief 通过传入的用户卡ID删除指定用户
+ * @brief 删除所有用户数据
+ * @param startAddr[u32] 数据存储区的起始地址
+ */
+void RemoveAllData(u32 startAddr)
+{
+	u32 i;
+	u8 IDValue[DATA_SIZE];
+	u8 nullData[DATA_SIZE];
+	memset(nullData, 0xFF, DATA_SIZE); // 空ID值
+	for (i = startAddr; i <= MAX_ADDR; i += DATA_SIZE)
+	{
+		W25QXX_Read(IDValue, i, DATA_SIZE);
+		/* 结束条件 */
+		if (IsEquals(IDValue, nullData, DATA_SIZE) == TRUE)
+		{
+			return; // 当读到空ID时 则为所用用户数据删除完成
+		}
+		W25QXX_Write(nullData, i, DATA_SIZE);
+	}
+}
+
+/**
+ * @brief 通过传入的用户卡ID删除指定用户数据
  * @param cardID
  */
 void RemoveUser(u8 *cardID)
@@ -596,30 +784,6 @@ void RemoveUser(u8 *cardID)
 		ERR_BEEP();
 		delay_ms(1000);
 		LCD_Clear(BLUE);
-	}
-}
-
-/**
- * @brief 删除所有用户卡ID
- * @param startAddr[u32] 数据存储区的起始地址
- */
-void RemoveAllData(u32 startAddr)
-{
-	u32 i;
-	u8 nullData[DATA_SIZE];
-	memset(nullData, 0xFF, DATA_SIZE);
-	// 递归方式
-	// if (startAddr == 0x00FFFF)
-	// {
-	// 	return;
-	// }
-	// RemoveAllData(startAddr + size);
-	// W25QXX_Write(nullData, startAddr, size);
-
-	// 循环的方式
-	for (i = startAddr; i <= MAX_ADDR; i += DATA_SIZE)
-	{
-		W25QXX_Write(nullData, i, DATA_SIZE);
 	}
 }
 
