@@ -20,14 +20,6 @@
 #define KEY2 GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_2)  // PE2
 #define WK_UP GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) // PA0
 
-/*下面方式是通过位带操作方式读取IO*/
-/*
-#define KEY0 		PEin(4)   	//PE4
-#define KEY1 		PEin(3)		//PE3
-#define KEY2 		PEin(2)		//P32
-#define WK_UP 	PAin(0)		//PA0
-*/
-
 /* 定义按键值 */
 #define KEY0_VALUE 0
 #define KEY1_VALUE 1

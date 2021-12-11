@@ -23,11 +23,12 @@
 // #include "rtc.h"
 
 /** 接线方式
-	PC10 -- CLK
-	PC11 -- MISO
-	PC12 -- MOSI
-	PA4  -- NSS
-	PA6  -- RST
+	STM32 --  RFID
+	PC10  --  CLK
+	PC11  --  MISO
+	PC12  --  MOSI
+	PA4   --  NSS
+	PA6   --  RST
 */
 u8 adminID[ID_LEN] = {0x3A, 0x60, 0xAE, 0x80}; // 管理员卡号 用于删除用户的权限控制
 u8 cardID[ID_LEN + 1];						   // 存放普通用户ID卡号 +1是为了存放'\0'
@@ -91,7 +92,7 @@ void SysRunning(void)
 		{
 		case KEY0_VALUE:
 			LCD_Clear(BLUE);
-			BCSRunning();	   //  系统运行
+			BCSRunning();	   // 系统运行
 			keyFun = KEY_NULL; // 置为KEY_NULL -> 防止下次循环继续调用此功能
 			break;
 		case KEY1_VALUE:
