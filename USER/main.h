@@ -1,3 +1,10 @@
+/**
+ * @file main.h
+ * @author DXR (daxiongren@foxmail.com)
+ * @brief 主程序头文件
+ * @version 2.2
+ * @date 2021-12-02
+ */
 #ifndef __MAIN_H
 #define __MAIN_H
 #include "sys.h"

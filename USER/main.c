@@ -1,3 +1,10 @@
+/**
+ * @file main.c
+ * @author DXR (daxiongren@foxmail.com)
+ * @brief 主程序源文件
+ * @version 2.2
+ * @date 2021-12-02
+ */
 #include "sys.h"
 #include "delay.h"
 #include "usart.h"
