@@ -525,6 +525,7 @@ void ManageUser(void)
 			}
 			else
 			{
+				LCD_Clear(BLUE);
 				keyFun = KEY_NULL;
 			}
 		}
