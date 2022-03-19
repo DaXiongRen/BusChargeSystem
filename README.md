@@ -28,6 +28,7 @@
 
 - STM32F407
 - RFID 模块
+- TFT LCD 液晶屏模块
 
 硬件接线方式
 
@@ -40,6 +41,8 @@
 | PC12      | MOSI      |
 | PA4       | NSS       |
 | PA6       | RST       |
+
+TFT LCD 液晶屏模块 --- STM32F407开发板上固定位置插入
 
 ### 2.3 部署
 + 使用Keil uVision5集成开发工具打开.\BusChargeSystem\USER\目录下的BusChargeSystem.uvprojx文件并编译
