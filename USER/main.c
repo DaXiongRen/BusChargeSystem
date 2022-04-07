@@ -31,10 +31,10 @@
 
 /** 接线方式
 	STM32 --  RFID
-	PC10  --  CLK
-	PC11  --  MISO
+	PA4   --  SDA
+	PC10  --  SCK
 	PC12  --  MOSI
-	PA4   --  NSS
+	PC11  --  MISO
 	PA6   --  RST
 */
 u8 adminID[ID_LEN] = {0x3A, 0x60, 0xAE, 0x80}; // 管理员卡号 用于删除用户的权限控制
